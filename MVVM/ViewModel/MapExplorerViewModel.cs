@@ -11,6 +11,8 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
     internal class MapExplorerViewModel
     {
         public event Action<PhotoInfo> PhotoReceived;
+
+        public List<PhotoInfo> Photos { get; } = new();
         public void AddPhoto(PhotoInfo photo)
         {
             System.Diagnostics.Debug.WriteLine(
@@ -21,6 +23,8 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
             System.Diagnostics.Debug.WriteLine(
                 $"Longitude: {photo.Longitude}");
+
+            Photos.Add(photo);
 
             PhotoReceived?.Invoke(photo);
         }
