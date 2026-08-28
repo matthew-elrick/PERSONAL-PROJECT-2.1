@@ -22,6 +22,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Net.Http;
+using System.Text.Json;
 
 namespace PERSONAL_PROJECT_2.MVVM.View
 {
@@ -30,22 +32,26 @@ namespace PERSONAL_PROJECT_2.MVVM.View
     /// </summary>
     public partial class UploadPhotoView : UserControl
     {
+        private readonly HttpClient httpClient = new HttpClient();
+
         public UploadPhotoView()
         {
             InitializeComponent();
+
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PERSONAL_PROJECT_2.1/1.0");
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            Process_Photo();
+            await Process_Photo();
         }
 
-        private void Rectangle_Drop(object sender, DragEventArgs e)
+        private async void Rectangle_Drop(object sender, DragEventArgs e)
         {
-            Process_Photo();
+            await Process_Photo();
         }
 
-        public void Process_Photo()
+        public async Task Process_Photo()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog() { Multiselect = true };
             openFileDialog.Filter = "Image Files (*.gif,*.jpg,*.jpeg,*.bmp,*.png)|*.gif;*.jpg;*.jpeg;*.bmp;*.png";
@@ -69,9 +75,8 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
                     });
 
-                    //create folder to store photos
-                    string localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    string dir = System.IO.Path.Combine(localAppDataPath, "PERSONAL_PROJECT", "photos");
+                    string dir = PhotoStorage.PhotosFolder;
+
                     if (!System.IO.Directory.Exists(dir))
                     {
                         System.IO.Directory.CreateDirectory(dir);
@@ -125,17 +130,116 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                         System.Diagnostics.Debug.WriteLine(ex.ToString());
                     }
 
+                    double photoLatitude = latitude ?? 0;
+                    double photoLongitude = longitude ?? 0;
+
+                    string locationName = "Unknown location";
+
+                    if (latitude.HasValue &&
+                        longitude.HasValue)
+                    {
+                        locationName = await GetLocationName(
+                            photoLatitude,
+                            photoLongitude);
+                    }
+
                     PhotoInfo photoInfo = new PhotoInfo
                     {
                         Filename = storedFilename,
-                        Latitude = latitude,
-                        Longitude = longitude
+                        Latitude = photoLatitude,
+                        Longitude = photoLongitude,
+                        LocationName = locationName
                     };
+
                     var viewModel = DataContext as UploadPhotoViewModel;
                     viewModel?.NotifyPhotoUploaded(photoInfo);
                 }
             }
 
         }
+
+        private async Task<string> GetLocationName(double latitude, double longitude)
+        {
+            try
+            {
+                string url =
+                    "https://nominatim.openstreetmap.org/reverse" +
+                    $"?format=jsonv2" +
+                    $"&lat={latitude}" +
+                    $"&lon={longitude}" +
+                    $"&zoom=12" +
+                    $"&addressdetails=1";
+
+                using HttpResponseMessage response =
+                    await httpClient.GetAsync(url);
+
+                response.EnsureSuccessStatusCode();
+
+                string json =
+                    await response.Content.ReadAsStringAsync();
+
+                using JsonDocument document =
+                    JsonDocument.Parse(json);
+
+                JsonElement address =
+                    document.RootElement.GetProperty("address");
+
+                return GetBestLocationName(address);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Reverse geocoding failed: {ex.Message}");
+
+                return "Unknown location";
+            }
+        }
+        private static string GetBestLocationName(JsonElement address)
+        {
+            if (address.TryGetProperty(
+                "town",
+                out JsonElement town))
+            {
+                return town.GetString();
+            }
+
+            if (address.TryGetProperty(
+                "city",
+                out JsonElement city))
+            {
+                return city.GetString();
+            }
+
+            if (address.TryGetProperty(
+                "village",
+                out JsonElement village))
+            {
+                return village.GetString();
+            }
+
+            if (address.TryGetProperty(
+                "municipality",
+                out JsonElement municipality))
+            {
+                return municipality.GetString();
+            }
+
+            if (address.TryGetProperty(
+                "suburb",
+                out JsonElement suburb))
+            {
+                return suburb.GetString();
+            }
+
+            if (address.TryGetProperty(
+                "county",
+                out JsonElement county))
+            {
+                return county.GetString();
+            }
+
+            return "Unknown location";
+        }
+
     }
 }

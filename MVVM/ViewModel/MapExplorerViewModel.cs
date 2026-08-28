@@ -15,14 +15,20 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         public List<PhotoInfo> Photos { get; } = new();
         public void AddPhoto(PhotoInfo photo)
         {
+            if (photo.Latitude == 0 &&
+                photo.Longitude == 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Skipping {photo.Filename} - no GPS.");
+
+                return;
+            }
+
             System.Diagnostics.Debug.WriteLine(
                 $"Photo received: {photo.Filename}");
 
             System.Diagnostics.Debug.WriteLine(
-                $"Latitude: {photo.Latitude}");
-
-            System.Diagnostics.Debug.WriteLine(
-                $"Longitude: {photo.Longitude}");
+                $"Location: {photo.LocationName}");
 
             Photos.Add(photo);
 

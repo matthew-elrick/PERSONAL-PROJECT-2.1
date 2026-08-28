@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
         AllowsTransparency="True"
-        WindowStyle="None">
+        WindowStyle="None"><!--height 720 width 1080-->
     <!--Added datacontext above so that the commands binded correctly as relacommands (still not showing though)-->
 
     <Window.DataContext>
@@ -33,7 +33,7 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="PP2"
+            <TextBlock Text="PP2.1"
            VerticalAlignment="Center"
            HorizontalAlignment="Left"
            Foreground="White"

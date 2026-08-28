@@ -37,9 +37,14 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
             UploadPhotoVM.PhotoUploaded += MapExplorerVM.AddPhoto;
 
+            foreach (var photo in UploadPhotoVM.Photos)
+            {
+                MapExplorerVM.AddPhoto(photo);
+            }
+
             CurrentView = UploadPhotoVM;
 
-            UploadPhotoViewCommand = new RelayCommand(o =>    
+            UploadPhotoViewCommand = new RelayCommand(o =>
             {
                 CurrentView = UploadPhotoVM;
             });
@@ -47,7 +52,7 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             MapExplorerViewCommand = new RelayCommand(o =>
             {
                 CurrentView = MapExplorerVM;
-            });       
+            });
         }
     }
 }
