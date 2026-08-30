@@ -1,9 +1,10 @@
+using PERSONAL_PROJECT_2.Core;
+using PERSONAL_PROJECT_2.MVVM.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PERSONAL_PROJECT_2.Core;
 
 namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 {
@@ -11,11 +12,12 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
     {
 
         public RelayCommand UploadPhotoViewCommand { get; set; }
-
-        public RelayCommand MapExplorerViewCommand { get; set; }
+        public RelayCommand MapExplorerViewCommand { get; set; }       
+        public RelayCommand AlbumsViewCommand { get; set; }
 
         public UploadPhotoViewModel UploadPhotoVM { get; set; }
         public MapExplorerViewModel MapExplorerVM { get; set; }
+        public AlbumsViewModel AlbumsVM { get; set; }
 
         private object _currentView;
 
@@ -34,8 +36,10 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         {
             UploadPhotoVM = new UploadPhotoViewModel();
             MapExplorerVM = new MapExplorerViewModel();
+            AlbumsVM = new AlbumsViewModel(MapExplorerVM.PhotoGroups);
 
             UploadPhotoVM.PhotoUploaded += MapExplorerVM.AddPhoto;
+            UploadPhotoVM.PhotoNeedsLocation += HandlePhotoNeedsLocation;
 
             foreach (var photo in UploadPhotoVM.Photos)
             {
@@ -53,6 +57,16 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             {
                 CurrentView = MapExplorerVM;
             });
+            AlbumsViewCommand = new RelayCommand(o =>
+            {
+                CurrentView = AlbumsVM;
+            });
+        }
+
+        private void HandlePhotoNeedsLocation(PhotoInfo photo)
+        {
+            CurrentView = MapExplorerVM;
+            MapExplorerVM.StartLocationPicking(photo);
         }
     }
 }

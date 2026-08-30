@@ -20,6 +20,9 @@
             <DataTemplate DataType="{x:Type viewModel:MapExplorerViewModel}">
                 <view:MapExplorerView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModel:AlbumsViewModel}">
+                <view:AlbumsView/>
+            </DataTemplate>
             <SolidColorBrush x:Key="ProgressBar.Progress" Color="#FF06B025"/>
             <SolidColorBrush x:Key="ProgressBar.Background" Color="#FFE6E6E6"/>
             <SolidColorBrush x:Key="ProgressBar.Border" Color="#FFBCBCBC"/>

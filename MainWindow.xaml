@@ -50,12 +50,19 @@
                          IsChecked="True"
                          Command="{Binding UploadPhotoViewCommand}"/>
 
-                <RadioButton Content="MapExplorer"
+                <RadioButton Content="Map Explorer"
                          Height="50"
                          Foreground="White"
                          FontSize="14"
                          Style="{StaticResource MenuButtonTheme}"
                          Command="{Binding MapExplorerViewCommand}"/>
+
+                <RadioButton Content="Albums"
+                             Height="50"
+                             Foreground="White"
+                             FontSize="14"
+                             Style="{StaticResource MenuButtonTheme}"
+                             Command="{Binding AlbumsViewCommand}"/>
 
                 <!--<RadioButton Content="Another Button"
                          Height="50"

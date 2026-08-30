@@ -11,6 +11,8 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
         public List<PhotoInfo> Photos { get; private set; }
 
+        public event Action<PhotoInfo> PhotoNeedsLocation;
+
         public UploadPhotoViewModel()
         {
             Photos = PhotoStorage.LoadPhotos();
@@ -18,7 +20,6 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
         public void NotifyPhotoUploaded(PhotoInfo photo)
         {
-            // Don't add the same photo twice
             if (Photos.Any(p =>
                 string.Equals(
                     p.Filename,
@@ -36,6 +37,11 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             PhotoStorage.SavePhotos(Photos);
 
             PhotoUploaded?.Invoke(photo);
+        }
+
+        public void NotifyPhotoNeedsLocation(PhotoInfo photo)
+        {
+            PhotoNeedsLocation?.Invoke(photo);
         }
     }
 }

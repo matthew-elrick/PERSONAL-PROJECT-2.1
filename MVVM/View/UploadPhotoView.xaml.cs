@@ -146,13 +146,20 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                     PhotoInfo photoInfo = new PhotoInfo
                     {
                         Filename = storedFilename,
-                        Latitude = photoLatitude,
-                        Longitude = photoLongitude,
-                        LocationName = locationName
+                        Latitude = latitude ?? 0,
+                        Longitude = longitude ?? 0
                     };
 
                     var viewModel = DataContext as UploadPhotoViewModel;
-                    viewModel?.NotifyPhotoUploaded(photoInfo);
+
+                    if (latitude.HasValue && longitude.HasValue)
+                    {
+                        viewModel?.NotifyPhotoUploaded(photoInfo);
+                    }
+                    else
+                    {
+                        viewModel?.NotifyPhotoNeedsLocation(photoInfo);
+                    }
                 }
             }
 

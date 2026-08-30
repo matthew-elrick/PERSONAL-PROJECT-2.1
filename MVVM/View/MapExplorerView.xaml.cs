@@ -5,6 +5,9 @@ using Mapsui.Projections;
 using Mapsui.Styles;
 using Mapsui.Tiling;
 using Mapsui.UI.Wpf;
+using BruTile;
+using BruTile.Predefined;
+using Mapsui.Tiling.Layers;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using PERSONAL_PROJECT_2.MVVM.Model;
@@ -33,13 +36,17 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
         private MPoint? popupMapPosition;
 
-        private List<PhotoGroup> photoGroups = new();
-        private const double GroupDistanceMeters = 50;
+        //private List<PhotoGroup> photoGroups = new();
+        private const double GroupDistanceMeters = 1000;
         private PhotoGroup currentPhotoGroup;
         private int currentPhotoIndex = 0;
 
         private readonly HttpClient httpClient = new HttpClient();
         private readonly Dictionary<string, string> locationCache = new();
+
+        private MapExplorerViewModel? _viewModel;
+        private PhotoInfo? _photoWaitingForLocation;
+        private bool _isPickingLocation;
 
         public MapExplorerView()
         {
@@ -49,6 +56,10 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             map = new Mapsui.Map();
             map.Layers.Add(OpenStreetMap.CreateTileLayer());
+            //string tileFolder = @"C:\Users\elric\processing\natural_earth_tiles";
+            //var tileSource = new LocalTileSource(tileFolder);
+            //map.Layers.Add(new TileLayer(tileSource));
+
             photoLayer = new MemoryLayer("Photos")
             {
                 Features = new List<IFeature>()
@@ -63,53 +74,125 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             DataContextChanged += MapExplorerView_DataContextChanged;
         }
 
-        private void MapExplorerView_DataContextChanged(
-            object sender,
-            DependencyPropertyChangedEventArgs e)
+        /*public class LocalTileSource : ILocalTileSource
+        {
+            private readonly string _directory;
+
+            public LocalTileSource(string directory)
+            {
+                _directory = directory;
+
+                Schema = new GlobalSphericalMercator();
+                Name = "Natural Earth II";
+                Attribution = new Attribution("Natural Earth II");
+            }
+
+            public string Name { get; }
+
+            public ITileSchema Schema { get; }
+
+            public Attribution Attribution { get; }
+
+            public string GetTilePath(TileInfo tileInfo)
+            {
+                var tile = tileInfo.Index;
+
+                // BruTile uses TMS Y coordinates.
+                // gdal2tiles --xyz created XYZ Y coordinates.
+                int xyzY = (1 << tile.Level) - 1 - tile.Row;
+
+                return Path.Combine(
+                    _directory,
+                    tile.Level.ToString(),
+                    tile.Col.ToString(),
+                    $"{xyzY}.png");
+            }
+
+            public byte[] GetTile(TileInfo tileInfo)
+            {
+                var path = GetTilePath(tileInfo);
+
+                if (!File.Exists(path))
+                    return Array.Empty<byte>();
+
+                return File.ReadAllBytes(path);
+            }
+
+            public async Task<byte[]> GetTileAsync(TileInfo tileInfo)
+            {
+                var path = GetTilePath(tileInfo);
+
+                if (!File.Exists(path))
+                    return Array.Empty<byte>();
+
+                return await File.ReadAllBytesAsync(path);
+            }
+        }*/
+        
+        private void MapExplorerView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue is MapExplorerViewModel oldViewModel)
             {
                 oldViewModel.PhotoReceived -= AddPhotoToMap;
+                oldViewModel.PhotoNeedsLocation -= BeginLocationPicking;
             }
 
             if (e.NewValue is MapExplorerViewModel newViewModel)
             {
                 viewModel = newViewModel;
-                viewModel.PhotoReceived += AddPhotoToMap;
+                _viewModel = newViewModel;
 
-                foreach (var photo in viewModel.Photos)
+                newViewModel.PhotoReceived += AddPhotoToMap;
+                newViewModel.PhotoNeedsLocation += BeginLocationPicking;
+
+                foreach (var photo in newViewModel.Photos)
                 {
                     AddPhotoToMap(photo);
                 }
 
+                // Start placing the next photo if one is waiting
+                if (newViewModel.PendingPhoto != null &&
+                    !_isPickingLocation)
+                {
+                    var pendingPhoto = newViewModel.GetNextPendingPhoto();
+
+                    if (pendingPhoto != null)
+                    {
+                        BeginLocationPicking(pendingPhoto);
+                    }
+                }
+
                 System.Diagnostics.Debug.WriteLine(
                     "MapExplorerView connected to MapExplorerViewModel.");
+
                 System.Diagnostics.Debug.WriteLine(
-                    $"Existing photos: {viewModel.Photos.Count}");
+                    $"Existing photos: {newViewModel.Photos.Count}");
             }
         }
 
-        private void AddPhotoToMap(PhotoInfo photo)
+        private async void AddPhotoToMap(PhotoInfo photo)
         {
-            if (!photo.Latitude.HasValue ||
-                !photo.Longitude.HasValue)
+            if (string.IsNullOrWhiteSpace(photo.LocationName))
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"Skipping {photo.Filename} - no GPS coordinates.");
+                photo.LocationName = await GetLocationName(
+                    photo.Latitude,
+                    photo.Longitude);
 
-                return;
+                System.Diagnostics.Debug.WriteLine(
+                    $"Location found for {photo.Filename}: {photo.LocationName}");
             }
 
             PhotoGroup nearbyGroup = null;
 
-            foreach (var group in photoGroups)
+            foreach (var group in viewModel.PhotoGroups)
             {
                 var firstPhoto = group.FirstPhoto;
+
                 double distance = CalculateDistanceMeters(
-                    photo.Latitude.Value,
-                    photo.Longitude.Value,
-                    firstPhoto.Latitude.Value,
-                    firstPhoto.Longitude.Value);
+                    photo.Latitude,
+                    photo.Longitude,
+                    firstPhoto.Latitude,
+                    firstPhoto.Longitude);
 
                 if (distance <= GroupDistanceMeters)
                 {
@@ -121,8 +204,10 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             if (nearbyGroup != null)
             {
                 nearbyGroup.Photos.Add(photo);
+
                 System.Diagnostics.Debug.WriteLine(
                     $"Added {photo.Filename} to existing group.");
+
                 System.Diagnostics.Debug.WriteLine(
                     $"Group now contains {nearbyGroup.Photos.Count} photos.");
 
@@ -131,7 +216,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             var newGroup = new PhotoGroup();
             newGroup.Photos.Add(photo);
-            photoGroups.Add(newGroup);
+            viewModel.PhotoGroups.Add(newGroup);
 
             System.Diagnostics.Debug.WriteLine(
                 $"Created new photo group for {photo.Filename}");
@@ -220,28 +305,97 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             }
             return thumbnailPath;
         }
-
-        private void MapControl_MapTapped(object? sender, Mapsui.MapEventArgs e)
+        private async void MapControl_MapTapped(object? sender, MapEventArgs e)
         {
-            var mapInfo = e.GetMapInfo(
-                new[] { photoLayer });
-
-            if (mapInfo == null ||
-                mapInfo.Feature == null)
+            var mapInfo = e.GetMapInfo(new[] { photoLayer });
+            if (!_isPickingLocation || _photoWaitingForLocation == null)
             {
-                HidePhotoPopup();
+                if (mapInfo == null ||
+                    mapInfo.Feature == null)
+                {
+                    HidePhotoPopup();
+                    return;
+                }
+                if (mapInfo.Feature["PhotoGroup"]
+                    is not PhotoGroup group)
+                {
+                    HidePhotoPopup();
+                    return;
+                }
+
+                ShowPhotoGroupPopup(
+                    group,
+                    mapInfo.Feature);
+
                 return;
             }
-            if (mapInfo.Feature["PhotoGroup"]
-                is not PhotoGroup group)
-            {
-                HidePhotoPopup();
-                return;
-            }
 
-            ShowPhotoGroupPopup(
-                group,
-                mapInfo.Feature);
+            var worldPosition = e.WorldPosition;
+            var location = SphericalMercator.ToLonLat(worldPosition.X, worldPosition.Y);
+            double longitude = location.lon;
+            double latitude = location.lat;
+
+            _photoWaitingForLocation.Latitude = latitude;
+            _photoWaitingForLocation.Longitude = longitude;
+
+            string locationName = await GetLocationName(latitude, longitude);
+            _photoWaitingForLocation.LocationName = locationName;
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Manually placed photo: {_photoWaitingForLocation.Filename}");
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Latitude: {latitude}");
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Longitude: {longitude}");
+
+            _isPickingLocation = false;
+
+            var photo = _photoWaitingForLocation;
+
+            _photoWaitingForLocation = null;
+            _isPickingLocation = false;
+
+            if (photo == null)
+                return;
+
+            _viewModel?.AddPhoto(photo);
+
+            _viewModel?.CompletePendingPhoto();
+
+            var nextPhoto = _viewModel?.GetNextPendingPhoto();
+
+            if (nextPhoto != null)
+            {
+                // Give WPF a moment to finish processing
+                // the current map click before starting
+                // the next photo.
+                Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        BeginLocationPicking(nextPhoto);
+                    }),
+                    System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            }
+        }
+        private void BeginLocationPicking(PhotoInfo photo)
+        {
+            // Don't overwrite a photo that is already waiting
+            if (_isPickingLocation)
+                return;
+
+            _photoWaitingForLocation = photo;
+            _isPickingLocation = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                MessageBox.Show(
+                    $"Click on the map to place:\n\n{photo.Filename}",
+                    "Choose Photo Location",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         private void ShowPhotoGroupPopup(PhotoGroup group, IFeature feature)
@@ -387,8 +541,8 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                 return;
 
             var point = SphericalMercator.FromLonLat(
-                photo.Longitude.Value,
-                photo.Latitude.Value);
+                photo.Longitude,
+                photo.Latitude);
             var feature = new PointFeature(
                 point.x,
                 point.y);

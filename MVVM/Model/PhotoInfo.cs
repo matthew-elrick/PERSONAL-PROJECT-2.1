@@ -9,8 +9,8 @@ namespace PERSONAL_PROJECT_2.MVVM.Model
     public class PhotoInfo
     {
         public string Filename { get; set; }
-        public double? Latitude { get; set; }
-        public double? Longitude { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public string LocationName { get; set; }
 
     }
