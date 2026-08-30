@@ -1,19 +1,20 @@
-﻿using Mapsui;
+﻿using BruTile;
+using BruTile.Predefined;
+using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Styles;
 using Mapsui.Tiling;
-using Mapsui.UI.Wpf;
-using BruTile;
-using BruTile.Predefined;
 using Mapsui.Tiling.Layers;
+using Mapsui.UI.Wpf;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using PERSONAL_PROJECT_2.MVVM.Model;
 using PERSONAL_PROJECT_2.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -51,6 +52,8 @@ namespace PERSONAL_PROJECT_2.MVVM.View
         public MapExplorerView()
         {
             InitializeComponent();
+
+            Loaded += MapExplorerView_Loaded;
 
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PERSONAL_PROJECT_2.1/1.0");
 
@@ -145,12 +148,14 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                 newViewModel.PhotoReceived += AddPhotoToMap;
                 newViewModel.PhotoNeedsLocation += BeginLocationPicking;
 
-                foreach (var photo in newViewModel.Photos)
+                if (newViewModel.PhotoGroups.Count == 0)
                 {
-                    AddPhotoToMap(photo);
+                    foreach (var photo in newViewModel.Photos)
+                    {
+                        AddPhotoToMap(photo);
+                    }
                 }
 
-                // Start placing the next photo if one is waiting
                 if (newViewModel.PendingPhoto != null &&
                     !_isPickingLocation)
                 {
@@ -170,6 +175,24 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             }
         }
 
+        private void MapExplorerView_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel == null)
+                return;
+
+            photoLayer.Features = new List<IFeature>();
+
+            foreach (var group in _viewModel.PhotoGroups)
+            {
+                CreateGroupMarker(group);
+            }
+
+            photoLayer.DataHasChanged();
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Rebuilt map with {_viewModel.PhotoGroups.Count} groups.");
+        }
+
         private async void AddPhotoToMap(PhotoInfo photo)
         {
             if (string.IsNullOrWhiteSpace(photo.LocationName))
@@ -184,7 +207,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             PhotoGroup nearbyGroup = null;
 
-            foreach (var group in viewModel.PhotoGroups)
+            foreach (var group in _viewModel.PhotoGroups)
             {
                 var firstPhoto = group.FirstPhoto;
 
@@ -216,7 +239,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             var newGroup = new PhotoGroup();
             newGroup.Photos.Add(photo);
-            viewModel.PhotoGroups.Add(newGroup);
+            _viewModel.PhotoGroups.Add(newGroup);
 
             System.Diagnostics.Debug.WriteLine(
                 $"Created new photo group for {photo.Filename}");
@@ -368,9 +391,6 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             if (nextPhoto != null)
             {
-                // Give WPF a moment to finish processing
-                // the current map click before starting
-                // the next photo.
                 Dispatcher.BeginInvoke(
                     new Action(() =>
                     {
@@ -381,7 +401,6 @@ namespace PERSONAL_PROJECT_2.MVVM.View
         }
         private void BeginLocationPicking(PhotoInfo photo)
         {
-            // Don't overwrite a photo that is already waiting
             if (_isPickingLocation)
                 return;
 

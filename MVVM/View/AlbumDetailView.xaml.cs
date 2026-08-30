@@ -1,5 +1,4 @@
-﻿using PERSONAL_PROJECT_2.MVVM.Model;
-using PERSONAL_PROJECT_2.MVVM.ViewModel;
+﻿using PERSONAL_PROJECT_2.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,23 +14,23 @@ using System.Windows.Shapes;
 
 namespace PERSONAL_PROJECT_2.MVVM.View
 {
-    public partial class AlbumsView : UserControl
+    /// <summary>
+    /// Interaction logic for AlbumDetailView.xaml
+    /// </summary>
+    public partial class AlbumDetailView : UserControl
     {
-        public AlbumsView()
+        public AlbumDetailView()
         {
             InitializeComponent();
         }
 
-        private void Album_Click(object sender, MouseButtonEventArgs e)
+        private void Back_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Border border &&
-                border.DataContext is PhotoGroup group)
+            if (DataContext is AlbumDetailViewModel viewModel)
             {
-                if (DataContext is AlbumsViewModel albumsViewModel)
-                {
-                    albumsViewModel.OpenAlbum(group);
-                }
+                viewModel.GoBack();
             }
         }
+
     }
 }

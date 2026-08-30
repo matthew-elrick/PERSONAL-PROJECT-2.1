@@ -15,9 +15,12 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         public RelayCommand MapExplorerViewCommand { get; set; }       
         public RelayCommand AlbumsViewCommand { get; set; }
 
+
         public UploadPhotoViewModel UploadPhotoVM { get; set; }
         public MapExplorerViewModel MapExplorerVM { get; set; }
         public AlbumsViewModel AlbumsVM { get; set; }
+
+        public AlbumDetailViewModel AlbumDetailVM { get; set; }
 
         private object _currentView;
 
@@ -37,6 +40,7 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             UploadPhotoVM = new UploadPhotoViewModel();
             MapExplorerVM = new MapExplorerViewModel();
             AlbumsVM = new AlbumsViewModel(MapExplorerVM.PhotoGroups);
+            AlbumsVM.AlbumSelected += OpenAlbum;
 
             UploadPhotoVM.PhotoUploaded += MapExplorerVM.AddPhoto;
             UploadPhotoVM.PhotoNeedsLocation += HandlePhotoNeedsLocation;
@@ -67,6 +71,18 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         {
             CurrentView = MapExplorerVM;
             MapExplorerVM.StartLocationPicking(photo);
+        }
+
+        private void OpenAlbum(PhotoGroup group)
+        {
+            AlbumDetailVM = new AlbumDetailViewModel(group);
+
+            AlbumDetailVM.BackRequested += () =>
+            {
+                CurrentView = AlbumsVM;
+            };
+
+            CurrentView = AlbumDetailVM;
         }
     }
 }

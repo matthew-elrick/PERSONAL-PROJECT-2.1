@@ -14,7 +14,6 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
     {
         public event Action<PhotoInfo> PhotoReceived;
         public List<PhotoInfo> Photos { get; } = new();
-
         public List<PhotoGroup> PhotoGroups { get; } = new();
 
         public event Action<PhotoInfo> PhotoNeedsLocation;

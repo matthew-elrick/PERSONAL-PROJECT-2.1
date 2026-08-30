@@ -6,7 +6,6 @@
              xmlns:local="clr-namespace:PERSONAL_PROJECT_2.MVVM.View"
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1080">
-    
     <Grid Background="White">
 
         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -26,11 +25,14 @@
                                 Height="220"
                                 Margin="15"
                                 Background="#EEEEEE"
-                                CornerRadius="10">
+                                CornerRadius="10"
+                                MouseLeftButtonUp="Album_Click"
+                                Cursor="Hand">
+                            <!--MouseLeftButtonUp="Album_Click"-->
 
                             <StackPanel>
 
-                                <Image Source="{Binding FirstPhoto.Filename}"
+                                <Image Source="{Binding FirstPhoto.PhotoPath}"
                                        Height="160"
                                        Stretch="UniformToFill"/>
 
