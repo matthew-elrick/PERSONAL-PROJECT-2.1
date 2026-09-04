@@ -13,20 +13,21 @@
                               Background="{TemplateBinding Background}">
                             <TextBlock Text="{TemplateBinding Content}"
                                        VerticalAlignment="Center"
-                                       Margin="50,0,0,0"/>
+                                       HorizontalAlignment="Center"
+                                       />
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
 
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="#364156"/>
             <Setter Property="BorderThickness" Value="0"/>
 
         </Style.Setters>
 
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="#22202f"/>
+                <Setter Property="Background" Value="#212D40"/>
             </Trigger>
         </Style.Triggers>
 

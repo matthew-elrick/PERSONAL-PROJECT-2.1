@@ -18,10 +18,22 @@
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
-    
-    
-    <Border Background="#272537"
-        CornerRadius="20">
+
+
+    <Border CornerRadius="20">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#11151C" Offset="0"/>
+                            <GradientStop Color="#11151C" Offset="0.5"/>
+                            <GradientStop Color="#252D3B" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Border.Style>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"/>
@@ -33,36 +45,51 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="PP2.1"
+            <!--<TextBlock Text="PP2.1"
            VerticalAlignment="Center"
            HorizontalAlignment="Left"
            Foreground="White"
            FontSize="22"
-           Margin="20,0,0,0"/>
+           Margin="20,0,0,0"/>-->
+            
+            <Image x:Name="TripTracker" 
+                   Source="/Images/TripTracker.png"
+                   Margin="7,7,7,7"/>
 
-            <StackPanel Grid.Row="1">
+                <StackPanel Grid.Row="1">
+
+                <RadioButton Content="Home"
+                             Height="60"
+                             Foreground="#D5D5D5"
+                             FontSize="24"
+                             Style="{StaticResource MenuButtonTheme}"
+                             Command="{Binding HomeViewCommand}"
+                             IsChecked="True"                             
+                             Margin="0,3,0,3"/>
 
                 <RadioButton Content="Upload Photo"
-                         Height="50"
-                         Foreground="White"
-                         FontSize="14"
-                         Style="{StaticResource MenuButtonTheme}"
-                         IsChecked="True"
-                         Command="{Binding UploadPhotoViewCommand}"/>
+                             Height="60"
+                             Foreground="#D5D5D5"
+                             FontSize="24"
+                             Style="{StaticResource MenuButtonTheme}"
+                             Command="{Binding UploadPhotoViewCommand}"
+                             Margin="0,3,0,3"/>
 
                 <RadioButton Content="Map Explorer"
-                         Height="50"
-                         Foreground="White"
-                         FontSize="14"
-                         Style="{StaticResource MenuButtonTheme}"
-                         Command="{Binding MapExplorerViewCommand}"/>
+                             Height="60"
+                             Foreground="#D5D5D5"
+                             FontSize="24"
+                             Style="{StaticResource MenuButtonTheme}"
+                             Command="{Binding MapExplorerViewCommand}"
+                             Margin="0,3,0,3"/>
 
                 <RadioButton Content="Albums"
-                             Height="50"
-                             Foreground="White"
-                             FontSize="14"
+                             Height="60"
+                             Foreground="#D5D5D5"
+                             FontSize="24"
                              Style="{StaticResource MenuButtonTheme}"
-                             Command="{Binding AlbumsViewCommand}"/>
+                             Command="{Binding AlbumsViewCommand}"
+                             Margin="0,3,0,3"/>
 
                 <!--<RadioButton Content="Another Button"
                          Height="50"
@@ -73,9 +100,23 @@
             </StackPanel>
 
             <ContentControl Grid.Row="1"
-                        Grid.Column="1"
-                        Margin="10"
-                        Content="{Binding CurrentView}"/>
+                            Grid.Column="1"
+                            Margin="10"
+                            Content="{Binding CurrentView}"/>
+            <Canvas x:Name="TransitionCanvas"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed"
+                    ClipToBounds="True">
+
+                <Canvas x:Name="TransitionLines">
+                    <Canvas.RenderTransform>
+                        <TranslateTransform x:Name="StripeGroupTranslate"/>
+                    </Canvas.RenderTransform>
+                </Canvas>
+
+            </Canvas>
 
         </Grid>
     </Border>

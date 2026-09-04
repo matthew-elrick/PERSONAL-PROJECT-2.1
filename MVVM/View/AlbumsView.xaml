@@ -6,9 +6,21 @@
              xmlns:local="clr-namespace:PERSONAL_PROJECT_2.MVVM.View"
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1080">
-    <Grid Background="White">
+    <Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#91493B" Offset="0"/>
+                            <GradientStop Color="#C78477" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Style>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Style="{DynamicResource ScrollViewerStyle1}" VerticalScrollBarVisibility="Auto">
 
             <ItemsControl ItemsSource="{Binding Albums}">
 
@@ -22,30 +34,57 @@
                     <DataTemplate>
 
                         <Border Width="220"
-                                Height="220"
-                                Margin="15"
-                                Background="#EEEEEE"
-                                CornerRadius="10"
+                                Height="237"
+                                Margin="20"                            
+                                CornerRadius="20"
                                 MouseLeftButtonUp="Album_Click"
                                 Cursor="Hand">
-                            <!--MouseLeftButtonUp="Album_Click"-->
 
-                            <StackPanel>
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding FirstPhoto.DisplayImage}" 
+                                            Stretch="UniformToFill" />
+                            </Border.Background>
 
-                                <Image Source="{Binding FirstPhoto.PhotoPath}"
-                                       Height="160"
-                                       Stretch="UniformToFill"/>
+                            <Grid>
+                                <Rectangle Height="150"
+                                           VerticalAlignment="Bottom"
+                                           RadiusX="20"
+                                           RadiusY="20">
+                                    <Rectangle.Style>
+                                        <Style TargetType="Rectangle">
+                                            <Setter Property="Fill">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#00666666" Offset="0"/>
+                                                        <GradientStop Color="#FF000000" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Rectangle.Style>
+                                </Rectangle>
 
-                                <TextBlock Text="{Binding FirstPhoto.LocationName}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           HorizontalAlignment="Center"
-                                           Margin="5"/>
+                                <StackPanel VerticalAlignment="Bottom">
 
-                                <TextBlock Text="{Binding Photos.Count, StringFormat={}{0} photos}"
-                                           HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FirstPhoto.LocationName}"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Bottom"
+                                               Margin="6,0,0,0"
+                                               MaxWidth="200"
+                                               Height="Auto"
+                                               TextWrapping="Wrap"/>
 
-                            </StackPanel>
+                                    <TextBlock Text="{Binding Photos.Count, StringFormat={}{0} photos}"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Bottom"
+                                               Foreground="#B4B4B4"
+                                               Margin="6,0,0,10"/>
+
+                                </StackPanel>
+                            </Grid>
 
                         </Border>
 

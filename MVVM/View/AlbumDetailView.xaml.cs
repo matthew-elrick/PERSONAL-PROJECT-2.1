@@ -1,4 +1,5 @@
-﻿using PERSONAL_PROJECT_2.MVVM.ViewModel;
+﻿using PERSONAL_PROJECT_2.MVVM.Model;
+using PERSONAL_PROJECT_2.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,5 +33,27 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             }
         }
 
+        private void Delete_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button)
+                return;
+
+            if (button.DataContext is not PhotoInfo photo)
+                return;
+
+            if (DataContext is not AlbumDetailViewModel viewModel)
+                return;
+
+            MessageBoxResult result = MessageBox.Show(
+                $"Are you sure you want to delete \"{photo.Filename}\"?",
+                "Delete Photo",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            viewModel.DeletePhoto(photo);
+        }
     }
 }

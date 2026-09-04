@@ -20,21 +20,20 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
         public void NotifyPhotoUploaded(PhotoInfo photo)
         {
-            if (Photos.Any(p =>
+            if (photo == null)
+                return;
+
+            Photos.RemoveAll(p =>
                 string.Equals(
                     p.Filename,
                     photo.Filename,
-                    StringComparison.OrdinalIgnoreCase)))
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"Photo already exists: {photo.Filename}");
-
-                return;
-            }
+                    StringComparison.OrdinalIgnoreCase));
 
             Photos.Add(photo);
-
             PhotoStorage.SavePhotos(Photos);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Photo uploaded and saved: {photo.Filename}");
 
             PhotoUploaded?.Invoke(photo);
         }

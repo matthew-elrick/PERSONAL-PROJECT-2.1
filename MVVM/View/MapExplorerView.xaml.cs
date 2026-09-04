@@ -1,13 +1,19 @@
 ﻿using BruTile;
+using BruTile.FileSystem;
 using BruTile.Predefined;
+using BruTile.Web;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
+using Mapsui.Limiting;
 using Mapsui.Projections;
 using Mapsui.Styles;
 using Mapsui.Tiling;
 using Mapsui.Tiling.Layers;
+using Mapsui.UI;
 using Mapsui.UI.Wpf;
+using Mapsui.Widgets.ButtonWidgets;
+using Mapsui.Widgets.InfoWidgets;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using PERSONAL_PROJECT_2.MVVM.Model;
@@ -18,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Printing;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,6 +32,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Windows.System;
 
 namespace PERSONAL_PROJECT_2.MVVM.View
 {
@@ -38,7 +46,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
         private MPoint? popupMapPosition;
 
         //private List<PhotoGroup> photoGroups = new();
-        private const double GroupDistanceMeters = 1000;
+        //private const double GroupDistanceMeters = 1000;
         private PhotoGroup currentPhotoGroup;
         private int currentPhotoIndex = 0;
 
@@ -58,79 +66,45 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PERSONAL_PROJECT_2.1/1.0");
 
             map = new Mapsui.Map();
-            map.Layers.Add(OpenStreetMap.CreateTileLayer());
-            //string tileFolder = @"C:\Users\elric\processing\natural_earth_tiles";
-            //var tileSource = new LocalTileSource(tileFolder);
-            //map.Layers.Add(new TileLayer(tileSource));
 
-            photoLayer = new MemoryLayer("Photos")
+            var performanceWidget = map.Widgets
+                .OfType<Mapsui.Widgets.InfoWidgets.PerformanceWidget>()
+                .FirstOrDefault();
+            if (performanceWidget != null)
             {
+                performanceWidget.Performance.IsActive =
+                    Mapsui.Widgets.ActiveMode.No;
+            }
+            var loggingWidget = map.Widgets
+                .OfType<Mapsui.Widgets.InfoWidgets.LoggingWidget>()
+                .FirstOrDefault();
+            if (loggingWidget != null)
+            {
+                loggingWidget.Enabled = false;
+            }
+
+            map.Navigator.Limiter = new ViewportLimiterKeepWithinExtent();
+
+            //map.Layers.Add(OpenStreetMap.CreateTileLayer());
+            //map.Layers.Add(new TileLayer(KnownTileSources.Create()));
+            var tileSource = KnownTileSources.Create(KnownTileSource.EsriWorldDarkGrayBase); //EsriWorldTopo EsriWorldShadedRelief
+            map.Layers.Add(new TileLayer(tileSource));
+
+            photoLayer = new MemoryLayer("Photos") { 
+            
                 Features = new List<IFeature>()
             };
 
             map.Layers.Add(photoLayer);
             mapControl.Map = map;
 
+            //map.Widgets.Add(CreateZoomInOutWidget(Orientation.Vertical, VerticalAlignment.Top, HorizontalAlignment.Left));
+
             mapControl.MapTapped += MapControl_MapTapped;
             mapControl.Map.Navigator.ViewportChanged += Navigator_ViewportChanged;
 
             DataContextChanged += MapExplorerView_DataContextChanged;
         }
-
-        /*public class LocalTileSource : ILocalTileSource
-        {
-            private readonly string _directory;
-
-            public LocalTileSource(string directory)
-            {
-                _directory = directory;
-
-                Schema = new GlobalSphericalMercator();
-                Name = "Natural Earth II";
-                Attribution = new Attribution("Natural Earth II");
-            }
-
-            public string Name { get; }
-
-            public ITileSchema Schema { get; }
-
-            public Attribution Attribution { get; }
-
-            public string GetTilePath(TileInfo tileInfo)
-            {
-                var tile = tileInfo.Index;
-
-                // BruTile uses TMS Y coordinates.
-                // gdal2tiles --xyz created XYZ Y coordinates.
-                int xyzY = (1 << tile.Level) - 1 - tile.Row;
-
-                return Path.Combine(
-                    _directory,
-                    tile.Level.ToString(),
-                    tile.Col.ToString(),
-                    $"{xyzY}.png");
-            }
-
-            public byte[] GetTile(TileInfo tileInfo)
-            {
-                var path = GetTilePath(tileInfo);
-
-                if (!File.Exists(path))
-                    return Array.Empty<byte>();
-
-                return File.ReadAllBytes(path);
-            }
-
-            public async Task<byte[]> GetTileAsync(TileInfo tileInfo)
-            {
-                var path = GetTilePath(tileInfo);
-
-                if (!File.Exists(path))
-                    return Array.Empty<byte>();
-
-                return await File.ReadAllBytesAsync(path);
-            }
-        }*/
         
         private void MapExplorerView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -192,8 +166,23 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             System.Diagnostics.Debug.WriteLine(
                 $"Rebuilt map with {_viewModel.PhotoGroups.Count} groups.");
         }
+        private void AddPhotoToMap(PhotoInfo photo)
+        {
+            var group = _viewModel?.PhotoGroups
+                .FirstOrDefault(g => g.Photos.Contains(photo));
 
-        private async void AddPhotoToMap(PhotoInfo photo)
+            if (group == null)
+                return;
+
+            if (photoLayer.Features.Any(f =>
+                f["PhotoGroup"] == group))
+            {
+                return;
+            }
+
+            CreateGroupMarker(group);
+        }
+        /*private async void AddPhotoToMap(PhotoInfo photo)
         {
             if (string.IsNullOrWhiteSpace(photo.LocationName))
             {
@@ -245,18 +234,22 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                 $"Created new photo group for {photo.Filename}");
 
             CreateGroupMarker(newGroup);
-        }
+        }*/
 
+        //theres some repition i did not build this in the corredct order i dont even care anymore though its just doen
         private string CreateCircularThumbnail(string photoPath, string filename)
         {
             string localAppDataPath =
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData);
+
             string thumbnailDirectory = Path.Combine(
                 localAppDataPath,
                 "PERSONAL_PROJECT",
                 "thumbnails");
+
             System.IO.Directory.CreateDirectory(thumbnailDirectory);
+
             string thumbnailPath = Path.Combine(
                 thumbnailDirectory,
                 Path.GetFileNameWithoutExtension(filename) + ".png");
@@ -266,14 +259,28 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             const int size = 80;
             const int borderThickness = 4;
-            var bitmap = new BitmapImage();
 
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(photoPath);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.DecodePixelWidth = size;
-            bitmap.DecodePixelHeight = size;
-            bitmap.EndInit();
+            BitmapSource bitmap =
+                LoadThumbnailPhotoWithOrientation(photoPath);
+
+            double scaleX = (double)size / bitmap.PixelWidth;
+            double scaleY = (double)size / bitmap.PixelHeight;
+
+            double scale = Math.Max(scaleX, scaleY);
+
+            int scaledWidth =
+                (int)(bitmap.PixelWidth * scale);
+
+            int scaledHeight =
+                (int)(bitmap.PixelHeight * scale);
+
+            var resizedBitmap = new TransformedBitmap(
+                bitmap,
+                new ScaleTransform(
+                    (double)scaledWidth / bitmap.PixelWidth,
+                    (double)scaledHeight / bitmap.PixelHeight));
+
+            resizedBitmap.Freeze();
 
             var drawingVisual = new DrawingVisual();
 
@@ -286,18 +293,21 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                         size / 2.0 - borderThickness,
                         size / 2.0 - borderThickness));
 
+                double x = (size - scaledWidth) / 2.0;
+                double y = (size - scaledHeight) / 2.0;
+
                 drawingContext.DrawImage(
-                    bitmap,
+                    resizedBitmap,
                     new Rect(
-                        borderThickness,
-                        borderThickness,
-                        size - borderThickness * 2,
-                        size - borderThickness * 2));
+                        x,
+                        y,
+                        scaledWidth,
+                        scaledHeight));
 
                 drawingContext.Pop();
 
                 var borderPen = new System.Windows.Media.Pen(
-                    System.Windows.Media.Brushes.White,
+                    Brushes.White,
                     borderThickness);
 
                 drawingContext.DrawEllipse(
@@ -316,17 +326,124 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                 PixelFormats.Pbgra32);
 
             renderBitmap.Render(drawingVisual);
+
             var encoder = new PngBitmapEncoder();
+
             encoder.Frames.Add(
                 BitmapFrame.Create(renderBitmap));
 
             using (var fileStream = new FileStream(
                 thumbnailPath,
-                FileMode.Create))
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.Read))
             {
                 encoder.Save(fileStream);
             }
+
+            if (!File.Exists(thumbnailPath))
+            {
+                throw new IOException(
+                    $"Thumbnail was not created: {thumbnailPath}");
+            }
+
             return thumbnailPath;
+        }
+
+
+        private BitmapSource LoadThumbnailPhotoWithOrientation(string photoPath)
+        {
+            var bitmap = new BitmapImage();
+
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(photoPath);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+            bitmap.EndInit();
+
+            bitmap.Freeze();
+
+            var metadata = ImageMetadataReader.ReadMetadata(photoPath);
+
+            var exif = metadata
+                .OfType<ExifIfd0Directory>()
+                .FirstOrDefault();
+
+            if (exif == null)
+                return bitmap;
+
+            if (!exif.TryGetInt32(
+                ExifDirectoryBase.TagOrientation,
+                out int orientation))
+            {
+                return bitmap;
+            }
+
+            switch (orientation)
+            {
+                // Normal
+                case 1:
+                    return bitmap;
+
+                // Flip horizontal
+                case 2:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new ScaleTransform(-1, 1));
+
+                // Rotate 180
+                case 3:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new RotateTransform(180));
+
+                // Flip vertical
+                case 4:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new ScaleTransform(1, -1));
+
+                // Flip horizontal + rotate 270
+                case 5:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new TransformGroup
+                        {
+                            Children =
+                            {
+                        new ScaleTransform(-1, 1),
+                        new RotateTransform(270)
+                            }
+                        });
+
+                // Rotate 90
+                case 6:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new RotateTransform(90));
+
+                // Flip horizontal + rotate 90
+                case 7:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new TransformGroup
+                        {
+                            Children =
+                            {
+                        new ScaleTransform(-1, 1),
+                        new RotateTransform(90)
+                            }
+                        });
+
+                // Rotate 270
+                case 8:
+                    return new TransformedBitmap(
+                        bitmap,
+                        new RotateTransform(270));
+
+                default:
+                    return bitmap;
+            }
         }
         private async void MapControl_MapTapped(object? sender, MapEventArgs e)
         {
@@ -361,7 +478,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             _photoWaitingForLocation.Latitude = latitude;
             _photoWaitingForLocation.Longitude = longitude;
 
-            string locationName = await GetLocationName(latitude, longitude);
+            string locationName = await _viewModel.GetLocationName(latitude, longitude);
             _photoWaitingForLocation.LocationName = locationName;
 
             System.Diagnostics.Debug.WriteLine(
@@ -489,7 +606,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.EndInit();
 
-            popupImage.Source = LoadPhotoWithOrientation(photoPath);
+            popupImage.Source = LoadThumbnailPhotoWithOrientation(photoPath);
 
             RenderOptions.SetBitmapScalingMode(
                 popupImage,
@@ -518,7 +635,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             }
         }
 
-        private static double CalculateDistanceMeters(double latitude1, double longitude1, double latitude2, double longitude2)
+        /*private static double CalculateDistanceMeters(double latitude1, double longitude1, double latitude2, double longitude2)
         {
             const double earthRadius = 6371000;
 
@@ -542,7 +659,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                     Math.Sqrt(1 - a));
 
             return earthRadius * c;
-        }
+        }*/
 
         private void CreateGroupMarker(PhotoGroup group)
         {
@@ -588,6 +705,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
 
             photoLayer.Features = features;
             photoLayer.DataHasChanged();
+            mapControl.Refresh();
             System.Diagnostics.Debug.WriteLine($"Created marker for {photo.Filename}");
         }
 
@@ -620,7 +738,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             UpdatePopupImage();
         }
 
-        private async Task<string> GetLocationName(double latitude, double longitude)
+        /*private async Task<string> GetLocationName(double latitude, double longitude)
         {
             string cacheKey = $"{latitude:F5},{longitude:F5}";
 
@@ -719,7 +837,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
             }
 
             return "Unknown location";
-        }
+        }*/
 
         private BitmapSource LoadPhotoWithOrientation(string photoPath)
         {
@@ -814,6 +932,26 @@ namespace PERSONAL_PROJECT_2.MVVM.View
                 default:
                     return bitmap;
             }
+        }
+        /*private static ZoomInOutWidget CreateZoomInOutWidget(Orientation orientation, 
+        VerticalAlignment verticalAlignment, HorizontalAlignment horizontalAlignment)
+        {
+            return new ZoomInOutWidget
+            {
+                Orientation = Mapsui.Widgets.Orientation.Vertical,
+                VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Top,
+                HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left,
+                Margin = new MRect(20),
+            };
+        }*/
+
+        private void ZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            mapControl.Map.Navigator.ZoomIn(500);
+        }
+        private void ZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            mapControl.Map.Navigator.ZoomOut(500);
         }
     }
 }

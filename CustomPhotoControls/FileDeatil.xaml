@@ -66,17 +66,6 @@
                            FallbackValue=FileSizeInMb, TargetNullValue=FileSizeInMb}"/>
             </Grid>
 
-            <Button BorderThickness="0"
-                    Background="Transparent"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center">
-
-                <Path Data="{StaticResource CloseIcon}"
-                       Fill="Silver"
-                       Height="10"
-                       Stretch="Uniform"/>
-            </Button>
-
             <ProgressBar Name="pb" 
                          Grid.Row="1"
                          Height="8"

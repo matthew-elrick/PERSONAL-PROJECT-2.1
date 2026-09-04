@@ -6,18 +6,30 @@
              xmlns:local="clr-namespace:PERSONAL_PROJECT_2.MVVM.View"
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1080">
-    <Grid Width="700">
+    <Grid Width="850">
         <Grid.RowDefinitions>
             <RowDefinition Height="80"/> <!--Header-->
             <RowDefinition/>
         </Grid.RowDefinitions>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#91493B" Offset="0"/>
+                            <GradientStop Color="#C78477" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Style>
 
         <TextBlock FontSize="30"
                    FontWeight="SemiBold"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Foreground="White"
-                   Text="Upload Photo"/>
+                   Text="Upload Photos"/>
 
         <Separator VerticalAlignment="Bottom"/>
 
@@ -37,7 +49,7 @@
                            StrokeDashArray="10"
                            StrokeThickness="2"
                            StrokeDashCap="Round"
-                           Stroke="Silver"
+                           Stroke="Black"
                            Height="300"
                            Width="300"/>
                 
@@ -68,7 +80,7 @@
                                FontWeight="SemiBold"/>
                     </StackPanel>
                 </Grid>
-                <Button Background="LawnGreen"
+                <Button Background="#364156"
                         BorderThickness="0"
                         Content="Choose Photo"
                         Foreground="White"
@@ -78,6 +90,27 @@
                         Width="150"
                         Margin="0,30,0,0"
                         Click="Button_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="border" 
+                                                Background="{TemplateBinding Background}" 
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="#212D40"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
                     <Button.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="10"/>
@@ -91,10 +124,7 @@
                           VerticalScrollBarVisibility="Hidden">
                 <Grid>
                     <ItemsControl x:Name="UploadingFilesList">
-                        <TextBlock Text="Uploading Photos,"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   Foreground="White"/>
+                        
                     </ItemsControl>
                 </Grid>
                 

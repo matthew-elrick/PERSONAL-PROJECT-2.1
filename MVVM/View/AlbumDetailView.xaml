@@ -6,30 +6,61 @@
              mc:Ignorable="d"
              d:DesignHeight="720" d:DesignWidth="1080">
 
-    <Grid Background="White">
-
+    <UserControl.Resources>
+        <PathGeometry x:Key="CloseIcon" Figures="M21.734375 19.640625L19.636719
+                    21.734375C19.253906 22.121094 18.628906 22.121094 18.242188
+                    21.734375L13 16.496094L7.761719 21.734375C7.375 22.121094 6.746094
+                    22.121094 6.363281 21.734375L4.265625 19.640625C3.878906 19.253906
+                    3.878906 18.628906 4.265625 18.242188L9.503906 13L4.265625
+                    7.761719C3.882813 7.371094 3.882813 6.742188 4.265625 6.363281L6.363281
+                    4.265625C6.746094 3.878906 7.375 3.878906 7.761719 4.265625L13
+                    9.507813L18.242188 4.265625C18.628906 3.878906 19.257813 3.878906
+                    19.636719 4.265625L21.734375 6.359375C22.121094 6.746094 22.121094
+                    7.375 21.738281 7.761719L16.496094 13L21.734375 18.242188C22.121094
+                    18.628906 22.121094 19.253906 21.734375 19.640625Z"/>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#91493B" Offset="0"/>
+                            <GradientStop Color="#C78477" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Style>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-
-            <Button Content="← Back"
+            <RadioButton Content="← Back"
                     Width="100"
                     Height="40"
                     Margin="20,0"
                     HorizontalAlignment="Left"
-                    Click="Back_Click"/>
+                    Click="Back_Click"
+                    Foreground="#D5D5D5"
+                    FontSize="24"
+                    Style="{StaticResource MenuButtonTheme}"/>
             <!-- Click="Back_Click" -->
 
             <TextBlock Text="{Binding LocationName}"
                        FontSize="26"
                        FontWeight="Bold"
+                       Foreground="Black"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
 
         </Grid>
+
+        <Separator VerticalAlignment="Bottom"/>
 
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto">
@@ -44,18 +75,58 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-
                         <Border Width="250"
-                                Height="250"
+                                Height="290"
                                 Margin="15"
-                                Background="#EEEEEE"
-                                CornerRadius="10">
+                                CornerRadius="20">
+                            <Grid>
 
-                            <Image Source="{Binding PhotoPath}"
-                                   Stretch="UniformToFill"/>
+                                <Image Source="{Binding DisplayImage}"
+                                       Stretch="Uniform"
+                                       Margin="5"/>
 
+                                <Button Width="28"
+                                        Height="28"
+                                        Margin="8"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Click="Delete_Click"
+                                        Background="IndianRed"
+                                        BorderThickness="0">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="border"
+                                                                CornerRadius="50"
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}">        
+                                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                                              VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="border" Property="Background" Value="PaleVioletRed"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                    <Path Data="{StaticResource CloseIcon}"
+                                          Fill="Black"
+                                          Stretch="Uniform"
+                                          Width="14"
+                                          Height="14"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                                </Button>
+
+                            </Grid>
                         </Border>
-
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
 

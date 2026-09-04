@@ -14,15 +14,24 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         public RelayCommand UploadPhotoViewCommand { get; set; }
         public RelayCommand MapExplorerViewCommand { get; set; }       
         public RelayCommand AlbumsViewCommand { get; set; }
+        public RelayCommand HomeViewCommand { get; set; }
 
 
         public UploadPhotoViewModel UploadPhotoVM { get; set; }
         public MapExplorerViewModel MapExplorerVM { get; set; }
         public AlbumsViewModel AlbumsVM { get; set; }
+        public HomeViewModel HomeVM { get; set; }
 
         public AlbumDetailViewModel AlbumDetailVM { get; set; }
 
         private object _currentView;
+
+
+        public event Action<object> ViewChangeRequested;
+        private void RequestViewChange(object view)
+        {
+            ViewChangeRequested?.Invoke(view);
+        }
 
         public object CurrentView
         {
@@ -40,6 +49,8 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             UploadPhotoVM = new UploadPhotoViewModel();
             MapExplorerVM = new MapExplorerViewModel();
             AlbumsVM = new AlbumsViewModel(MapExplorerVM.PhotoGroups);
+            HomeVM = new HomeViewModel();
+
             AlbumsVM.AlbumSelected += OpenAlbum;
 
             UploadPhotoVM.PhotoUploaded += MapExplorerVM.AddPhoto;
@@ -50,9 +61,9 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 MapExplorerVM.AddPhoto(photo);
             }
 
-            CurrentView = UploadPhotoVM;
+            CurrentView = HomeVM;
 
-            UploadPhotoViewCommand = new RelayCommand(o =>
+            /*UploadPhotoViewCommand = new RelayCommand(o =>
             {
                 CurrentView = UploadPhotoVM;
             });
@@ -64,6 +75,26 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             AlbumsViewCommand = new RelayCommand(o =>
             {
                 CurrentView = AlbumsVM;
+            });*/
+
+            UploadPhotoViewCommand = new RelayCommand(o =>
+            {
+                RequestViewChange(UploadPhotoVM);
+            });
+
+            MapExplorerViewCommand = new RelayCommand(o =>
+            {
+                RequestViewChange(MapExplorerVM);
+            });
+
+            AlbumsViewCommand = new RelayCommand(o =>
+            {
+                RequestViewChange(AlbumsVM);
+            });
+
+            HomeViewCommand = new RelayCommand(o =>
+            {
+                RequestViewChange(HomeVM);
             });
         }
 
@@ -72,17 +103,25 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             CurrentView = MapExplorerVM;
             MapExplorerVM.StartLocationPicking(photo);
         }
-
         private void OpenAlbum(PhotoGroup group)
         {
             AlbumDetailVM = new AlbumDetailViewModel(group);
 
             AlbumDetailVM.BackRequested += () =>
             {
-                CurrentView = AlbumsVM;
+                //CurrentView = AlbumsVM;
+                RequestViewChange(AlbumsVM);
             };
 
-            CurrentView = AlbumDetailVM;
+            AlbumDetailVM.AlbumEmpty += () =>
+            {
+                MapExplorerVM.PhotoGroups.Remove(group);
+                //CurrentView = AlbumsVM;
+                RequestViewChange(AlbumsVM);
+            };
+
+            //CurrentView = AlbumDetailVM;
+            RequestViewChange(AlbumDetailVM);
         }
     }
 }
