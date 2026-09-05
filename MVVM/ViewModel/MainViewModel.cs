@@ -62,6 +62,10 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             }
 
             CurrentView = HomeVM;
+            CurrentView = MapExplorerVM;
+            CurrentView = AlbumsVM;
+            CurrentView = AlbumDetailVM;
+            CurrentView = HomeVM;
 
             /*UploadPhotoViewCommand = new RelayCommand(o =>
             {

@@ -11,7 +11,14 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="350"/>
-                    <RowDefinition/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
+                    <RowDefinition Height="350"/>
                 </Grid.RowDefinitions>
                 <Grid.Style>
                     <Style TargetType="Grid">
@@ -60,7 +67,7 @@
                     </Grid>
 
                 </Grid>
-                
+
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -68,23 +75,161 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0">
-                        <Image Source="/Images/TripTracker.png" 
-               Margin="20,20,20,20"/>
+                        <TextBlock Text="To start uploading photos, go to the Upload Photos tab."
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   Margin="5,5,5,5"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"/>
                     </Grid>
-
                     <Grid Grid.Column="1">
-                        <TextBlock Text="Continue scrolling to learn how to use the app! Thanks for downloading!"
-                   FontSize="10"
-                   FontWeight="SemiBold"
-                   Foreground="White"
-                   HorizontalAlignment="Center"
-                   Margin="5,5,5,5"
-                   TextWrapping="Wrap"
-                   TextAlignment="Center"
-                   VerticalAlignment="Center"/>
+                        <Image Source="/Images/Screenshot 2026-09-05 115742.png"
+                               Margin="20,20,20,20"/>
                     </Grid>
 
                 </Grid>
+                <Grid Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Image Source="/Images/Screenshot 2026-09-05 115832.png"
+                           Margin="20,20,20,20"/>
+                    </Grid>
+
+                    <Grid Grid.Column="1">
+                        <TextBlock Text="Click the Upload Photo button or drag your photos into the box to upload your photos into the app."
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       Margin="5,5,5,5"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <TextBlock Text="To view your photo on the map go to the Map Explorer tab."
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   Margin="5,5,5,5"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Image Source="/Images/Screenshot 2026-09-05 115848.png"
+                               Margin="20,20,20,20"/>
+                    </Grid>
+
+                </Grid>
+                <Grid Grid.Row="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Image Source="/Images/Screenshot 2026-09-05 132036.png"
+                               Margin="20,20,20,20"/>
+                    </Grid>
+
+                    <Grid Grid.Column="1">
+                        <TextBlock Text="Click on the markers to view the photos at their location!"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       Margin="5,5,5,5"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <TextBlock Text="To view your photos in albums, go to the Albums tab."
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   Margin="5,5,5,5"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Image Source="/Images/Screenshot 2026-09-05 115901.png"
+                               Margin="20,20,20,20"/>
+                    </Grid>
+
+                </Grid>
+                <Grid Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Image Source="/Images/Screenshot 2026-09-05 115911.png"
+                               Margin="20,20,20,20"/>
+                    </Grid>
+
+                    <Grid Grid.Column="1">
+                        <TextBlock Text="Click on the albums to view all the photos in them."
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   Margin="5,5,5,5"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <TextBlock Text="If you wish to access your photos in the File Explorer, you can find them in your Local AppData folder."
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   Margin="5,5,5,5"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Image Source="/Images/Screenshot 2026-09-05 121639.png"
+                               Margin="20,20,20,20"/>
+                    </Grid>
+
+                </Grid>
+
             </Grid>
         </ScrollViewer>
     </Grid>
