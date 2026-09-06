@@ -7,6 +7,98 @@
              xmlns:mapsui="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1080">
+    <UserControl.Resources>
+        <Style x:Key="CoolSlider" TargetType="Slider">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="#30303D"/>
+            <Setter Property="Foreground" Value="#8B5CF6"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+
+                        <Grid>
+                            <Track x:Name="PART_Track"
+                                   VerticalAlignment="Center"
+                                   Focusable="False">
+
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                  CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                                  BorderThickness="0"
+                                                  Background="#212D40"
+                                                  Height="5"
+                                                  VerticalAlignment="Center"/>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                  CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                                  BorderThickness="0"
+                                                  Background="#30303D"
+                                                  Height="5"
+                                                  VerticalAlignment="Center"/>
+                                </Track.IncreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb Width="16"
+                                           Height="16"
+                                           Background="White"
+                                           BorderThickness="0"> 
+
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Grid>
+                                                    <Ellipse Width="26"
+                                                             Height="26"
+                                                             Fill="#8B5CF6"
+                                                             Opacity="0.18"/>
+
+                                                    <Ellipse Width="14"
+                                                             Height="14"
+                                                             Fill="White">
+
+                                                        <Ellipse.Effect>
+                                                            <DropShadowEffect BlurRadius="8"
+                                                                              ShadowDepth="0"
+                                                                              Opacity="0.7"/>
+                                                        </Ellipse.Effect>
+
+                                                    </Ellipse>
+
+                                                </Grid>
+
+                                                <ControlTemplate.Triggers>
+
+                                                    <Trigger Property="IsMouseOver"
+                                                             Value="True">
+                                                        <Setter Property="Opacity"
+                                                                Value="0.85"/>
+                                                    </Trigger>
+
+                                                    <Trigger Property="IsDragging"
+                                                             Value="True">
+                                                        <Setter Property="Opacity"
+                                                                Value="0.7"/>
+                                                    </Trigger>
+
+                                                </ControlTemplate.Triggers>
+
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+
+                                    </Thumb>
+                                </Track.Thumb>
+
+                            </Track>
+
+                        </Grid>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <mapsui:MapControl x:Name="mapControl" />
 
@@ -80,6 +172,26 @@
             </Button>
 
         </StackPanel>
+        
+        <!--<Slider x:Name="groupDistanceSlider"
+                Minimum="1"
+                Maximum="20"
+                Width="150"
+                Height="20"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="20,0,0,20"
+                Value="{Binding GroupDistance, Mode=TwoWay}"/>-->
+        <Slider x:Name="groupDistanceSlider"
+                Style="{StaticResource CoolSlider}"
+                Minimum="1"
+                Maximum="20"
+                Width="150"
+                Height="28"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="20,0,0,20"
+                Value="{Binding GroupDistance, Mode=TwoWay}"/>
 
         <Border x:Name="photoPopup"
                 Width="300"

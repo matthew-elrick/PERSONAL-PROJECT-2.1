@@ -8,11 +8,10 @@
         xmlns:view="clr-namespace:PERSONAL_PROJECT_2.MVVM.View"
         mc:Ignorable="d"
         Title="MainWindow" Height="720" Width="1080"
-        ResizeMode="NoResize"
+       
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
-        AllowsTransparency="True"
-        WindowStyle="None"><!--height 720 width 1080-->
+        WindowStyle="SingleBorderWindow">
     <!--Added datacontext above so that the commands binded correctly as relacommands (still not showing though)-->
 
     <Window.DataContext>

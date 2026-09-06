@@ -7,7 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1080">
     <Grid>
-        <ScrollViewer Style="{DynamicResource ScrollViewerStyle1}" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer x:Name="MainScrollViewer"
+                      Style="{DynamicResource ScrollViewerStyle1}" 
+                      VerticalScrollBarVisibility="Auto"
+                      ScrollChanged="MainScrollViewer_ScrollChanged">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="350"/>
@@ -34,7 +37,7 @@
                     </Style>
                 </Grid.Style>
 
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" x:Name="Section0">
                     <TextBlock Text="Welcome to TripTracker!"
                                FontSize="50"
                                FontWeight="Bold"
@@ -43,7 +46,7 @@
                                VerticalAlignment="Center"/>
                 </Grid>
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" x:Name="Section1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -68,7 +71,7 @@
 
                 </Grid>
 
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="2" x:Name="Section2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -91,7 +94,7 @@
                     </Grid>
 
                 </Grid>
-                <Grid Grid.Row="3">
+                <Grid Grid.Row="3" x:Name="Section3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -114,7 +117,7 @@
                                        VerticalAlignment="Center"/>
                     </Grid>
                 </Grid>
-                <Grid Grid.Row="4">
+                <Grid Grid.Row="4" x:Name="Section4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -137,7 +140,7 @@
                     </Grid>
 
                 </Grid>
-                <Grid Grid.Row="5">
+                <Grid Grid.Row="5" x:Name="Section5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -149,7 +152,7 @@
                     </Grid>
 
                     <Grid Grid.Column="1">
-                        <TextBlock Text="Click on the markers to view the photos at their location!"
+                        <TextBlock Text="Click on the markers to view the photos at their location! Photos that are 1km from each other will get grouped together!"
                        FontSize="20"
                        FontWeight="SemiBold"
                        Foreground="White"
@@ -160,7 +163,7 @@
                        VerticalAlignment="Center"/>
                     </Grid>
                 </Grid>
-                <Grid Grid.Row="6">
+                <Grid Grid.Row="6" x:Name="Section6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -183,7 +186,7 @@
                     </Grid>
 
                 </Grid>
-                <Grid Grid.Row="7">
+                <Grid Grid.Row="7" x:Name="Section7">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -206,7 +209,7 @@
                                    VerticalAlignment="Center"/>
                     </Grid>
                 </Grid>
-                <Grid Grid.Row="8">
+                <Grid Grid.Row="8" x:Name="Section8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>

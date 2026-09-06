@@ -168,6 +168,8 @@ namespace PERSONAL_PROJECT_2.MVVM.View
         }
         private void AddPhotoToMap(PhotoInfo photo)
         {
+            _viewModel.GroupDistanceMeters = (int)groupDistanceSlider.Value * 1000;
+
             var group = _viewModel?.PhotoGroups
                 .FirstOrDefault(g => g.Photos.Contains(photo));
 

@@ -8,10 +8,11 @@ using System.Windows;
 using System.IO;
 using System.Text.Json;
 using System.Net.Http;
+using PERSONAL_PROJECT_2.Core;
 
 namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 {
-    internal class MapExplorerViewModel
+    internal class MapExplorerViewModel : ObservableObject
     {
         public event Action<PhotoInfo> PhotoReceived;
         public List<PhotoInfo> Photos { get; } = new();
@@ -21,25 +22,56 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
         private readonly Queue<PhotoInfo> _pendingPhotos = new();
 
-        private const double GroupDistanceMeters = 1000;
+        public double GroupDistanceMeters = 1000;
 
         private readonly HttpClient _httpClient = new HttpClient();
         private readonly Dictionary<string, string> _locationCache = new();
+
+        private int _groupDistance = 1;
+
+        public int GroupDistance
+        {
+            get => _groupDistance;
+            set
+            {
+                if (_groupDistance == value)
+                {
+                    return;
+                }
+
+                _groupDistance = value;
+
+                GroupDistanceMeters = value * 1000;
+
+                OnPropertyChanged();
+
+                SavePhotos();
+            }
+        }
 
         public PhotoInfo? PendingPhoto =>
             _pendingPhotos.Count > 0
                 ? _pendingPhotos.Peek()
                 : null;
+
         private readonly string _jsonPath = Path.Combine(
             Environment.GetFolderPath(
             Environment.SpecialFolder.LocalApplicationData),
             "PERSONAL_PROJECT",
             "photos.json");
 
+        private class SavedData
+        {
+            public List<PhotoInfo> Photos { get; set; } = new();
+
+            public int GroupDistance { get; set; } = 1;
+        }
         public MapExplorerViewModel()
         {
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "PERSONAL_PROJECT_2.1/1.0");
+
+            LoadData();
         }
 
         public async void AddPhoto(PhotoInfo photo)
@@ -56,7 +88,6 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             System.Diagnostics.Debug.WriteLine(
                 $"Photo received: {photo.Filename}");
 
-            // Get the location BEFORE creating the album/group
             if (string.IsNullOrWhiteSpace(photo.LocationName))
             {
                 photo.LocationName = await GetLocationName(
@@ -83,7 +114,6 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             System.Diagnostics.Debug.WriteLine(
                 $"Queued photo for manual location: {photo.Filename}");
 
-            // Only start the first photo.
             if (_pendingPhotos.Count == 1)
             {
                 PhotoNeedsLocation?.Invoke(photo);
@@ -105,6 +135,7 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 _pendingPhotos.Dequeue();
             }
         }
+
         private void SavePhotos()
         {
             try
@@ -116,8 +147,14 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                     Directory.CreateDirectory(directory);
                 }
 
+                var data = new SavedData
+                {
+                    Photos = Photos,
+                    GroupDistance = GroupDistance
+                };
+
                 string json = JsonSerializer.Serialize(
-                    Photos,
+                    data,
                     new JsonSerializerOptions
                     {
                         WriteIndented = true
@@ -125,8 +162,10 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
 
                 File.WriteAllText(_jsonPath, json);
 
+
                 System.Diagnostics.Debug.WriteLine(
-                    $"Saved {Photos.Count} photos to JSON.");
+                    $"Saved {Photos.Count} photos and group distance " +
+                    $"{GroupDistance} km to JSON.");
             }
             catch (Exception ex)
             {
@@ -135,6 +174,55 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             }
         }
 
+        private void LoadData()
+        {
+            try
+            {
+                if (!File.Exists(_jsonPath))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "No saved data found.");
+
+                    return;
+                }
+
+                string json = File.ReadAllText(_jsonPath);
+                var data = JsonSerializer.Deserialize<SavedData>(json);
+
+                if (data == null)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "Could not load saved data.");
+
+                    return;
+                }
+
+                _groupDistance = data.GroupDistance;
+                GroupDistanceMeters = _groupDistance * 1000;
+
+                foreach (var photo in data.Photos)
+                {
+                    Photos.Add(photo);
+
+                    AddPhotoToGroup(photo);
+                }
+
+                OnPropertyChanged(nameof(GroupDistance));
+
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"Loaded {Photos.Count} photos.");
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"Loaded group distance: " +
+                    $"{GroupDistance} km ({GroupDistanceMeters} meters).");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Error loading saved data: {ex.Message}");
+            }
+        }
         private void AddPhotoToGroup(PhotoInfo photo)
         {
             PhotoGroup? nearbyGroup = null;
@@ -156,6 +244,7 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 }
             }
 
+
             if (nearbyGroup != null)
             {
                 nearbyGroup.Photos.Add(photo);
@@ -166,14 +255,18 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 return;
             }
 
+
             var newGroup = new PhotoGroup();
+
             newGroup.Photos.Add(photo);
 
             PhotoGroups.Add(newGroup);
 
+
             System.Diagnostics.Debug.WriteLine(
                 $"Created new photo group for {photo.Filename}");
         }
+
         private static double CalculateDistanceMeters(
             double latitude1,
             double longitude1,
@@ -182,14 +275,19 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
         {
             const double earthRadius = 6371000;
 
+
             double lat1 = latitude1 * Math.PI / 180;
+
             double lat2 = latitude2 * Math.PI / 180;
+
 
             double deltaLat =
                 (latitude2 - latitude1) * Math.PI / 180;
 
+
             double deltaLon =
                 (longitude2 - longitude1) * Math.PI / 180;
+
 
             double a =
                 Math.Sin(deltaLat / 2) *
@@ -200,30 +298,22 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 Math.Sin(deltaLon / 2) *
                 Math.Sin(deltaLon / 2);
 
+
             double c =
                 2 * Math.Atan2(
                     Math.Sqrt(a),
                     Math.Sqrt(1 - a));
 
+
             return earthRadius * c;
         }
-        /*private async Task LoadLocationName(PhotoInfo photo)
-        {
-            if (!string.IsNullOrWhiteSpace(photo.LocationName))
-                return;
 
-            string locationName = await GetLocationName(
-                photo.Latitude,
-                photo.Longitude);
-
-            photo.LocationName = locationName;
-
-            System.Diagnostics.Debug.WriteLine(
-                $"Location found for {photo.Filename}: {locationName}");
-        }*/
-        public async Task<string> GetLocationName( double latitude, double longitude)
+        public async Task<string> GetLocationName(
+            double latitude,
+            double longitude)
         {
             string cacheKey = $"{latitude:F5},{longitude:F5}";
+
 
             if (_locationCache.TryGetValue(
                 cacheKey,
@@ -231,6 +321,7 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
             {
                 return cachedLocation;
             }
+
 
             try
             {
@@ -243,18 +334,24 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                     $"&addressdetails=1" +
                     $"&layer=address";
 
+
                 using HttpResponseMessage response =
                     await _httpClient.GetAsync(url);
 
+
                 response.EnsureSuccessStatusCode();
+
 
                 string json =
                     await response.Content.ReadAsStringAsync();
 
+
                 using JsonDocument document =
                     JsonDocument.Parse(json);
 
+
                 JsonElement root = document.RootElement;
+
 
                 if (!root.TryGetProperty(
                     "address",
@@ -263,10 +360,13 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                     return "Unknown location";
                 }
 
+
                 string location =
                     GetBestLocationName(address);
 
+
                 _locationCache[cacheKey] = location;
+
 
                 return location;
             }
@@ -278,7 +378,9 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 return "Unknown location";
             }
         }
-        private static string GetBestLocationName(JsonElement address)
+
+        private static string GetBestLocationName(
+            JsonElement address)
         {
             if (address.TryGetProperty(
                 "town",
@@ -287,12 +389,14 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 return town.GetString();
             }
 
+
             if (address.TryGetProperty(
                 "city",
                 out JsonElement city))
             {
                 return city.GetString();
             }
+
 
             if (address.TryGetProperty(
                 "village",
@@ -301,12 +405,14 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 return village.GetString();
             }
 
+
             if (address.TryGetProperty(
                 "municipality",
                 out JsonElement municipality))
             {
                 return municipality.GetString();
             }
+
 
             if (address.TryGetProperty(
                 "suburb",
@@ -315,12 +421,14 @@ namespace PERSONAL_PROJECT_2.MVVM.ViewModel
                 return suburb.GetString();
             }
 
+
             if (address.TryGetProperty(
                 "county",
                 out JsonElement county))
             {
                 return county.GetString();
             }
+
 
             return "Unknown location";
         }

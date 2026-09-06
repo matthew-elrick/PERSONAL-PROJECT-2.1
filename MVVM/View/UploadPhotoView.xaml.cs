@@ -54,7 +54,7 @@ namespace PERSONAL_PROJECT_2.MVVM.View
         public async Task Process_Photo()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog() { Multiselect = true };
-            openFileDialog.Filter = "Image Files (*.gif,*.jpg,*.jpeg,*.bmp,*.png)|*.gif;*.jpg;*.jpeg;*.bmp;*.png";
+            openFileDialog.Filter = "Image Files (*.gif,*.jpg,*.jpeg,*.bmp,*.png,*.webp,*.avif)|*.gif;*.jpg;*.jpeg;*.bmp;*.png;*.webp;*.avif";
             openFileDialog.FilterIndex = 1;
             bool? response = openFileDialog.ShowDialog();
             if (response == true)
